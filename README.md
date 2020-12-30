@@ -9,6 +9,11 @@ A Dash Application to track best available players during a fantasy football dra
 <b>PPG</b>: Points Per Game<br/>
 <b>PPG+</b>: Points Per Game Over Replacement Player at a given roster position<br/><br/>
 
+<b>PURPOSE</b><br/>
+This Dashboard visualizes remaining player value by positional value to optimize roster construction throughout a draft.<br/>
+For example, when deciding between two players that have similar PPG projections but different positions, you may notice that one position TE drops off in value much more drastically after that player than the other position does.<br/><br/>
 
-The input that feeds the dashboard is an excel workbook with PPG (Points Per Game) projections for each player in the following format:
+
+<b>INPUT DATA</b><br/>
+An excel workbook with PPG (Points Per Game) projections for each player in the following format:
 ![Dash](https://github.com/Ben-Tiemeyer/Fantasy-Football-Draft-Dashboard/blob/main/projections_template.PNG)
