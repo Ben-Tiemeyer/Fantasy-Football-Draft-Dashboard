@@ -24,4 +24,4 @@ This Dashboard visualizes remaining player value by positional value to optimize
 
 <b>INPUT DATA</b><br/>
 An excel workbook with PPG (Points Per Game) projections for each player in the following format:
-![Dash](https://github.com/Ben-Tiemeyer/Fantasy-Football-Draft-Dashboard/blob/main/projections_template.PNG)
+![Excel](https://github.com/Ben-Tiemeyer/Fantasy-Football-Draft-Dashboard/blob/main/projections_template.PNG)
