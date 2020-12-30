@@ -7,7 +7,7 @@ A Dash Application to track best available players during a fantasy football dra
 <b>ACRONYM KEY</b><br/>
 <b>ADP</b>: Average Draft Position<br/>
 <b>PPG</b>: Points Per Game<br/>
-<b>PPG+</b>: Points Per Game Over Replacement Player at a given roster position<br/><br/>
+<b>PPG+</b>: Points Per Game Over Replacement Player at given roster position<br/><br/>
 
 <b>PURPOSE</b><br/>
 This Dashboard visualizes remaining player value by positional value to optimize roster construction throughout a draft.<br/>
