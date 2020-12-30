@@ -11,7 +11,7 @@ A Dash Application to track best available players during a fantasy football dra
 
 <b>PURPOSE</b><br/>
 This Dashboard visualizes remaining player value by positional value to optimize roster construction throughout a draft.<br/>
-For example, when deciding between two players that have similar PPG projections but different positions, you may notice that one position TE drops off in value much more drastically after that player than the other position does.<br/><br/>
+For example, when deciding between two players that have similar PPG projections but different positions, you may notice that one position drops off in value much more drastically after that player than the other position does.<br/><br/>
 
 
 <b>INPUT DATA</b><br/>
