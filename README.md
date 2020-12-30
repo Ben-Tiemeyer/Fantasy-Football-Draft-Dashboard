@@ -4,10 +4,10 @@ A Dash Application to track best available players during a fantasy football dra
 
 ![Dash](https://github.com/Ben-Tiemeyer/Fantasy-Football-Draft-Dashboard/blob/main/fantasy_football_draft_dashboard.png)
 
-<b>KEY</b><br/>
+<b>ACRONYM KEY</b><br/>
 <b>ADP</b>: Average Draft Position<br/>
 <b>PPG</b>: Points Per Game<br/>
-<b>PPG+</b>: Points Per Game Over Replacement Player at a given roster position<br/><br/><br/>
+<b>PPG+</b>: Points Per Game Over Replacement Player at a given roster position<br/><br/>
 
 
 The input that feeds the dashboard is an excel workbook with PPG (Points Per Game) projections for each player in the following format:
