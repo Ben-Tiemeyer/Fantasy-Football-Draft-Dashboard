@@ -6,7 +6,6 @@ from matplotlib import animation
 import dash_table
 import numpy as np
 import pandas as pd
-import sys
 import requests
 from bs4 import BeautifulSoup
 import time
