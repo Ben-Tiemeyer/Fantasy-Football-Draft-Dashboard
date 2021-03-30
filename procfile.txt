@@ -1,1 +1,1 @@
-web:gunicorn fantasy_draft_dashboard:server
+web:gunicorn app:server
