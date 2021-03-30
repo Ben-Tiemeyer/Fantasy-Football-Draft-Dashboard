@@ -105,6 +105,7 @@ roster_mapper = adp_df['Name'].tolist()
 roster_mapper_pos = adp_df['Position'].tolist()
 
 app = dash.Dash(__name__, external_stylesheets = ['/assets/style_sheet.css'])
+server = app.server
 
 colors = {
     'background': '#ffffff',
