@@ -1,1 +1,1 @@
-web: gunicorn app:server ps:scale web=1
+web: gunicorn fantasy_draft_dashboard:server
