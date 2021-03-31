@@ -13,6 +13,7 @@ from urllib.request import urlopen
 import plotly.graph_objs as go
 import datetime
 import gunicorn
+from whitenoise import WhiteNoise
 
 league_size = 12
 
@@ -107,6 +108,7 @@ roster_mapper_pos = adp_df['Position'].tolist()
 
 app = dash.Dash(__name__, external_stylesheets = ['/assets/style_sheet.css'])
 server = app.server
+server.wsgi_app = WhiteNoise(server.wsgi_app, root = 'static/')
 
 colors = {
     'background': '#ffffff',
