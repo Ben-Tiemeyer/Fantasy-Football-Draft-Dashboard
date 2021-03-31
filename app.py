@@ -14,6 +14,7 @@ import plotly.graph_objs as go
 import datetime
 import gunicorn
 from whitenoise import WhiteNoise
+import openpyxl
 
 app = dash.Dash(__name__, external_stylesheets = ['/assets/style_sheet.css'])
 server = app.server
@@ -37,20 +38,20 @@ team_stats['UID'] = team_stats['UID'].str.replace('V ', '')
 team_stats['UID'] = team_stats['UID'].str.replace('IV ', '')
 adp_dict = dict(zip(team_stats['UID'], team_stats.index))
 
-df_dst = pd.read_excel('static/projections_template.xls', sheet_name = 'DST&K')[['TEAM', 'DEF PTS']]
+df_dst = pd.read_excel('static/projections_template.xlsx', sheet_name = 'DST&K', engine = 'openpyxl')[['TEAM', 'DEF PTS']]
 df_dst['Name'] = df_dst['TEAM'] + ' Defense'
 df_dst['Position'] = 'D/ST'
 df_dst = df_dst[['Name', 'TEAM', 'Position', 'DEF PTS']]
 df_dst.columns = ['Name', 'Team', 'Position', 'PPG PROJECTION']
 
-dfk = pd.read_excel('static/projections_template.xls', sheet_name = 'DST&K')[['TEAM', 'OFF PTS']]
+dfk = pd.read_excel('static/projections_template.xlsx', sheet_name = 'DST&K', engine = 'openpyxl')[['TEAM', 'OFF PTS']]
 dfk['Name'] = dfk['TEAM'] + ' Kicker'
 dfk['Position'] = 'K'
 dfk = dfk[['Name', 'TEAM', 'Position', 'OFF PTS']]
 dfk.columns = ['Name', 'Team', 'Position', 'PPG PROJECTION']
 
-all_df = pd.read_excel('static/projections_template.xls', sheet_name = 'PLAYERS')
-all_df_team_mapping = pd.read_excel('static/projections_template.xlsx', sheet_name = 'TEAMS')[1:]
+all_df = pd.read_excel('static/projections_template.xlsx', sheet_name = 'PLAYERS', engine = 'openpyxl')
+all_df_team_mapping = pd.read_excel('static/projections_template.xlsx', sheet_name = 'TEAMS', engine = 'openpyxl')[1:]
 teams_dict = dict(zip(all_df_team_mapping['Unnamed: 1'], all_df_team_mapping['Unnamed: 0']))
 teams_dict['Jaguars'] = 'JAC'
 teams_dict['Redskins'] = 'WAS'
