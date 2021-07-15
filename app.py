@@ -13,6 +13,12 @@ import time
 from urllib.request import urlopen
 import plotly.graph_objs as go
 import datetime
+import gunicorn
+from whitenoise import WhiteNoise
+
+app = dash.Dash(__name__, external_stylesheets = ['/assets/style_sheet.css'])
+server = app.server
+server.wsgi_app = WhiteNoise(server.wsgi_app, root = 'static/')
 
 league_size = 12
 
@@ -127,8 +133,6 @@ data_stores['roster_df'] = roster_df.values
 data_stores['roster_df_columns'] = roster_df.columns
 data_stores['df'] = df.values
 data_stores['df_columns'] = df.columns
-
-app = dash.Dash(__name__, external_stylesheets = ['/assets/style_sheet.css'])
 
 colors = {
     'background': '#ffffff',
