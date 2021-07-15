@@ -13,12 +13,6 @@ import time
 from urllib.request import urlopen
 import plotly.graph_objs as go
 import datetime
-import gunicorn
-from whitenoise import WhiteNoise
-
-app = dash.Dash(__name__, external_stylesheets = ['/assets/style_sheet.css'])
-server = app.server
-server.wsgi_app = WhiteNoise(server.wsgi_app, root = 'static/')
 
 league_size = 12
 
@@ -124,6 +118,17 @@ roster_df['Name'] = roster_list
 adp_df = adp_df.sort_values(by='ADP', ascending = True).reset_index(drop=True)
 roster_mapper = adp_df['Name'].tolist()
 roster_mapper_pos = adp_df['Position'].tolist()
+
+data_stores = {}
+data_stores['roster_list'] = roster_list
+data_stores['adp_df'] = adp_df.values
+data_stores['adp_df_columns'] = adp_df.columns
+data_stores['roster_df'] = roster_df.values
+data_stores['roster_df_columns'] = roster_df.columns
+data_stores['df'] = df.values
+data_stores['df_columns'] = df.columns
+
+app = dash.Dash(__name__, external_stylesheets = ['/assets/style_sheet.css'])
 
 colors = {
     'background': '#ffffff',
@@ -429,27 +434,36 @@ app.layout = html.Div(style={'backgroundColor': colors['background']}, children=
                     ])
                  ], style={'width': '30%', 'color':'gray'}, className = 'three columns'
         )
-    ])
+    ]),
+    html.Div([dcc.Store(id='memory-data', data = data_stores)])
 ])
 
 @app.callback(
     [dash.dependencies.Output('bar-chart', 'figure'),
     dash.dependencies.Output('player-tracker', 'selected_rows'),
     dash.dependencies.Output('player-tracker', 'data'),
-    dash.dependencies.Output('roster-table', 'data')],
+    dash.dependencies.Output('roster-table', 'data'),
+    dash.dependencies.Output('memory-data', 'data')],
     [dash.dependencies.Input('position-dropdown', 'value'),
     dash.dependencies.Input('value-dropdown', 'value'),
     dash.dependencies.Input('draft-button', 'n_clicks_timestamp'),
     dash.dependencies.Input('delete-button', 'n_clicks_timestamp'),
     dash.dependencies.Input('size-dropdown', 'value'),
     dash.dependencies.Input('team-dropdown', 'value')],
-    [dash.dependencies.State('player-tracker', 'selected_rows')])
+    [dash.dependencies.State('player-tracker', 'selected_rows'),
+    dash.dependencies.State('memory-data', 'data')])
 
-def render_bar_chart(position_selected, value_selected, n_clicks_draft, n_clicks_delete, size_filter, team_filter, selected_rows):
-    global df
-    global adp_df
-    global roster_df
-    global roster_list
+def render_bar_chart(position_selected, value_selected, n_clicks_draft, n_clicks_delete, size_filter, team_filter, selected_rows, data_stores):
+    #global df
+    #global adp_df
+    #global roster_df
+    #global roster_list
+
+    df = pd.DataFrame(data= data_stores['df'], columns = data_stores['df_columns'])
+    adp_df = pd.DataFrame(data= data_stores['adp_df'], columns = data_stores['adp_df_columns'])
+    roster_df = pd.DataFrame(data= data_stores['roster_df'], columns = data_stores['roster_df_columns'])
+    roster_list = data_stores['roster_list']
+
     size_filter = int(size_filter)
     if len(selected_rows) > 0:
         drop_player = adp_df.iloc[selected_rows, 1].to_string(index=False).strip()
@@ -563,11 +577,20 @@ def render_bar_chart(position_selected, value_selected, n_clicks_draft, n_clicks
         elif ((roster_list[25] == '-') & (drafted_player_pos == 'TE')):
             roster_list[25] = drafted_player
         roster_df['Name'] = roster_list
+
+        data_stores['roster_list'] = roster_list
+        data_stores['adp_df'] = adp_df.values
+        data_stores['adp_df_columns'] = adp_df.columns
+        data_stores['roster_df'] = roster_df.values
+        data_stores['roster_df_columns'] = roster_df.columns
+        data_stores['df'] = df.values
+        data_stores['df_columns'] = df.columns
+
     return {
         'data':[bardata],
         'layout': {'height': 425,
                   'margin': {'l': 1, 'b': 30, 'r': 10, 't': 10}}
-        }, [], adp_df.to_dict('records'), roster_df.to_dict('records')
+        }, [], adp_df.to_dict('records'), roster_df.to_dict('records'), data_stores
 
 
 if __name__ == '__main__':
