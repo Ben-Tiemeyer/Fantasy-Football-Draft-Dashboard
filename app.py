@@ -125,8 +125,6 @@ adp_df = adp_df.sort_values(by='ADP', ascending = True).reset_index(drop=True)
 roster_mapper = adp_df['Name'].tolist()
 roster_mapper_pos = adp_df['Position'].tolist()
 
-app = dash.Dash(__name__, external_stylesheets = ['/assets/style_sheet.css'])
-
 colors = {
     'background': '#ffffff',
     'text': 'dimgrey'
