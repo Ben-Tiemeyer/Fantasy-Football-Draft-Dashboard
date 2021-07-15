@@ -6,22 +6,17 @@ from matplotlib import animation
 import dash_table
 import numpy as np
 import pandas as pd
+import sys
 import requests
 from bs4 import BeautifulSoup
 import time
 from urllib.request import urlopen
 import plotly.graph_objs as go
 import datetime
-import gunicorn
-from whitenoise import WhiteNoise
-
-app = dash.Dash(__name__, external_stylesheets = ['/assets/style_sheet.css'])
-server = app.server
-server.wsgi_app = WhiteNoise(server.wsgi_app, root = 'static/')
 
 league_size = 12
 
-url = 'https://www.fantasypros.com/nfl/adp/overall.php'
+url = 'https://www.fantasypros.com/nfl/adp/ppr-overall.php'
 ff_html = urlopen(url)
 soup = BeautifulSoup(ff_html, features="lxml")
 rows = soup.findAll('tr')
@@ -35,63 +30,71 @@ team_stats['UID'] = team_stats['UID'].str.replace('Jr. ', '')
 team_stats['UID'] = team_stats['UID'].str.replace('Sr. ', '')
 team_stats['UID'] = team_stats['UID'].str.replace('V ', '')
 team_stats['UID'] = team_stats['UID'].str.replace('IV ', '')
-adp_dict = dict(zip(team_stats['UID'], team_stats.index))
+adp_dict = dict(zip(team_stats['UID'], team_stats.index + 1))
 
-df_dst = pd.read_excel('static/projections_template.xlsx', sheet_name = 'DST&K')[['TEAM', 'DEF PTS']]
-df_dst['Name'] = df_dst['TEAM'] + ' Defense'
-df_dst['Position'] = 'D/ST'
-df_dst = df_dst[['Name', 'TEAM', 'Position', 'DEF PTS']]
-df_dst.columns = ['Name', 'Team', 'Position', 'PPG PROJECTION']
 
-dfk = pd.read_excel('static/projections_template.xlsx', sheet_name = 'DST&K')[['TEAM', 'OFF PTS']]
-dfk['Name'] = dfk['TEAM'] + ' Kicker'
-dfk['Position'] = 'K'
-dfk = dfk[['Name', 'TEAM', 'Position', 'OFF PTS']]
-dfk.columns = ['Name', 'Team', 'Position', 'PPG PROJECTION']
+all_df = pd.DataFrame()
 
-all_df = pd.read_excel('static/projections_template.xlsx', sheet_name = 'PLAYERS')
-all_df_team_mapping = pd.read_excel('static/projections_template.xlsx', sheet_name = 'TEAMS')[1:]
-teams_dict = dict(zip(all_df_team_mapping['Unnamed: 1'], all_df_team_mapping['Unnamed: 0']))
-teams_dict['Jaguars'] = 'JAC'
-teams_dict['Redskins'] = 'WAS'
-all_df['TEAM ABBREV'] = all_df['Team'].map(teams_dict)
+for pos in ['QB', 'RB', 'WR', 'TE']:
+    url = 'https://www.fantasypros.com/nfl/projections/'+pos.lower()+'.php?week=draft&scoring=PPR&week=draft'
+    ff_html = urlopen(url)
+    soup = BeautifulSoup(ff_html, features="lxml")
+    rows = soup.findAll('tr')
+    projections = [[td.getText() for td in rows[i].findAll('td')] for i in range(len(rows))]
+    projections = pd.DataFrame(projections)[2:].reset_index(drop=True)
+    if pos == 'RB' or pos == 'WR':
+        projections.columns = ['Name', 'Rushes', 'Rush Yards', 'Rush TDs', 'Receptions', 'Rec Yards', 'Rec TDs', 'Fumbles', 'PPG PROJECTION']
+        projections = projections[projections['Receptions'].notna()]
+        projections['rush_bonus'] = ((projections['Rush Yards'].str.replace(',', '').astype(float) / 17) * .015) * 17
+        projections['rec_bonus'] = ((projections['Rec Yards'].str.replace(',', '').astype(float) / 17) * .015) * 17
+        projections['PPG PROJECTION'] = (projections['PPG PROJECTION'].astype(float) + projections['rush_bonus'].astype(float) + projections['rec_bonus'].astype(float)  + projections['Fumbles'].astype(float)) / 17
+    elif pos == 'QB':
+        projections.columns = ['Name', 'PA', 'PC', 'Pass Yards', 'Pass TDs', 'Pass INTs', 'Rushes', 'Rush Yards', 'Rush TDs', 'Fumbles', 'PPG PROJECTION']
+        projections = projections[projections['Rushes'].notna()].copy()
+        projections['rush_bonus'] = ((projections['Rush Yards'].str.replace(',', '').astype(float) / 17) * .015) * 17
+        projections['pass_bonus'] = ((projections['Pass Yards'].str.replace(',', '').astype(float) / 17) * .005) * 17
+        projections['PPG PROJECTION'] = (projections['PPG PROJECTION'].astype(float) + projections['rush_bonus'].astype(float) + projections['pass_bonus'].astype(float) + projections['Fumbles'].astype(float) + projections['Pass INTs'].astype(float)) / 17
+    elif pos == 'TE':
+        projections.columns = ['Name', 'Receptions', 'Rec Yards', 'Rec TDs', 'Fumbles', 'PPG PROJECTION']
+        projections = projections[projections['Fumbles'].notna()].copy()
+        projections['rec_bonus'] = ((projections['Rec Yards'].str.replace(',', '').astype(float) / 17) * .015) * 17
+        projections['PPG PROJECTION'] = (projections['PPG PROJECTION'].astype(float) + projections['rec_bonus'].astype(float) + projections['Fumbles'].astype(float)) / 17
+    projections['Team'] = projections['Name'].str.split(' ').str[-2]
+    projections['Name'] = projections['Name'].str.strip().str[:-3].str.strip()
+    if pos == 'RB':
+        projections['Position'] = 'HB'
+    else:
+        projections['Position'] = pos
+    projections = projections[['Name', 'Team', 'Position', 'PPG PROJECTION']]
+    all_df = all_df.append(projections)
+
+all_df['TEAM ABBREV'] = all_df['Team'].copy()
 all_df['UID'] = all_df['Name'] + ' ' + all_df['TEAM ABBREV']
 all_df['UID'] = all_df['UID'].str.replace('III ', '')
 all_df['UID'] = all_df['UID'].str.replace('II ', '')
-all_df['UID'] = all_df['UID'].str.replace('Jr ', '')
-all_df['UID'] = all_df['UID'].str.replace('Sr ', '')
+all_df['UID'] = all_df['UID'].str.replace('Jr. ', '')
+all_df['UID'] = all_df['UID'].str.replace('Sr. ', '')
 all_df['UID'] = all_df['UID'].str.replace('V ', '')
 all_df['UID'] = all_df['UID'].str.replace('IV ', '')
 all_df['ADP'] = all_df['UID'].map(adp_dict)
 all_df['ADP'] = all_df['ADP'].fillna(400)
 
 
-
 df = all_df[['Name', 'Team', 'Position', 'PPG PROJECTION']]
 df['PPG PROJECTION'] = df['PPG PROJECTION'].round(2)
-df = pd.concat([df, df_dst, dfk]).reset_index(drop=True)
 df = df.sort_values(by='PPG PROJECTION', ascending=False).reset_index(drop=True)
 df['PPG PROJECTION'] = df['PPG PROJECTION'].astype(float)
 df = df[df['PPG PROJECTION'] > 1]
 teams_list = df['Team'].unique().tolist()
-position_list = ['ALL', 'QB', 'HB', 'WR', 'TE', 'FLEX', 'D/ST', 'K']
+position_list = ['ALL', 'QB', 'HB', 'WR', 'TE', 'FLEX']
 ## Calculate Value at each postion above hardcoded avg. points / game of replacement player
-df.loc[df['Position'] == 'QB', 'PPG+'] = df.loc[df['Position'] == 'QB', 'PPG PROJECTION'] - 16.75
-df.loc[df['Position'] == 'HB', 'PPG+'] = df.loc[df['Position'] == 'HB', 'PPG PROJECTION'] - 7.73
-df.loc[df['Position'] == 'WR', 'PPG+'] = df.loc[df['Position'] == 'WR', 'PPG PROJECTION'] - 6.74
-df.loc[df['Position'] == 'TE', 'PPG+'] = df.loc[df['Position'] == 'TE', 'PPG PROJECTION'] - 4.06
-df.loc[df['Position'] == 'D/ST', 'PPG+'] = df.loc[df['Position'] == 'D/ST', 'PPG PROJECTION'] - 6.80
-df.loc[df['Position'] == 'K', 'PPG+'] = df.loc[df['Position'] == 'K', 'PPG PROJECTION'] - 7
+df.loc[df['Position'] == 'QB', 'PPG+'] = df.loc[df['Position'] == 'QB', 'PPG PROJECTION'] - 16.34
+df.loc[df['Position'] == 'HB', 'PPG+'] = df.loc[df['Position'] == 'HB', 'PPG PROJECTION'] - 12.43
+df.loc[df['Position'] == 'WR', 'PPG+'] = df.loc[df['Position'] == 'WR', 'PPG PROJECTION'] - 11.96
+df.loc[df['Position'] == 'TE', 'PPG+'] = df.loc[df['Position'] == 'TE', 'PPG PROJECTION'] - 8.69
 adp_df = all_df.sort_values(by = 'ADP')
-adp_df['ADP'] = adp_df['ADP'] + 1
+adp_df['ADP'] = adp_df['ADP']
 adp_df = adp_df[['ADP', 'Name', 'Position', 'Team']]
-df_dst = df_dst[['Name', 'Position', 'Team']]
-df_dst['ADP'] = 400
-df_dst = df_dst[['ADP', 'Name', 'Position', 'Team']]
-dfk = dfk[['Name', 'Position', 'Team']]
-dfk['ADP'] = 400
-dfk = dfk[['ADP', 'Name', 'Position', 'Team']]
-adp_df = pd.concat([adp_df, df_dst, dfk])
 adp_mapper = dict(zip(adp_df['Name'], adp_df['ADP']))
 df['ADP'] = df['Name'].map(adp_mapper)
 df['ADP'] = df['ADP']/league_size
@@ -102,13 +105,21 @@ teams_list = sorted(df['Team'].unique().tolist())
 teams_list.insert(0, 'ALL TEAMS')
 
 roster_df = pd.DataFrame()
-roster_list = ['-','-','-','-','-','-','-','-','-','-','-','-','-','-','-','-']
-roster_df['Pos.'] = ['QB', 'RB1', 'RB2', 'WR1', 'WR2', 'TE', 'FLEX', 'D/ST', 'K', '-', '-', '-', '-', '-', '-', '-']
+roster_list = ['-','-','-',
+              '-','-','-','-','-','-','-',
+              '-','-','-','-','-','-','-','-','-','-', '-', '-', '-',
+              '-','-','-']
+roster_df['Pos.'] = ['QB1', 'QB2', 'QB3',
+                     'RB1', 'RB2', 'RB3', 'RB4', 'RB5', 'RB6', 'RB7',
+                     'WR1', 'WR2', 'WR3', 'WR4', 'WR5', 'WR6', 'WR7', 'WR8', 'WR9', 'WR10', 'WR11', 'WR12', 'WR13',
+                     'TE1', 'TE2', 'TE3']
 roster_df['Name'] = roster_list
 
 adp_df = adp_df.sort_values(by='ADP', ascending = True).reset_index(drop=True)
 roster_mapper = adp_df['Name'].tolist()
 roster_mapper_pos = adp_df['Position'].tolist()
+
+app = dash.Dash(__name__, external_stylesheets = ['/assets/style_sheet.css'])
 
 colors = {
     'background': '#ffffff',
@@ -116,7 +127,7 @@ colors = {
 }
 app.layout = html.Div(style={'backgroundColor': colors['background']}, children=[
     html.H1(
-        children='Fantasy Football Draft Dashboard',
+        children='Best Ball Draft Dashboard',
         style={
             'textAlign': 'center',
             'color': colors['text']
@@ -167,7 +178,21 @@ app.layout = html.Div(style={'backgroundColor': colors['background']}, children=
                     style_data_conditional=[
                         {
                             'if': {
-                                'filter_query': '{Pos.} = QB'
+                                'filter_query': '{Pos.} = QB1'
+                            },
+                            'backgroundColor': 'lightgrey',
+                            'color': 'black'
+                        },
+                        {
+                            'if': {
+                                'filter_query': '{Pos.} = QB2'
+                            },
+                            'backgroundColor': 'lightgrey',
+                            'color': 'black'
+                        },
+                        {
+                            'if': {
+                                'filter_query': '{Pos.} = QB3'
                             },
                             'backgroundColor': 'lightgrey',
                             'color': 'black'
@@ -188,6 +213,41 @@ app.layout = html.Div(style={'backgroundColor': colors['background']}, children=
                         },
                         {
                             'if': {
+                                'filter_query': '{Pos.} = RB3'
+                            },
+                            'backgroundColor': 'lightgreen',
+                            'color': 'black'
+                        },
+                        {
+                            'if': {
+                                'filter_query': '{Pos.} = RB4'
+                            },
+                            'backgroundColor': 'lightgreen',
+                            'color': 'black'
+                        },
+                        {
+                            'if': {
+                                'filter_query': '{Pos.} = RB5'
+                            },
+                            'backgroundColor': 'lightgreen',
+                            'color': 'black'
+                        },
+                        {
+                            'if': {
+                                'filter_query': '{Pos.} = RB6'
+                            },
+                            'backgroundColor': 'lightgreen',
+                            'color': 'black'
+                        },
+                        {
+                            'if': {
+                                'filter_query': '{Pos.} = RB7'
+                            },
+                            'backgroundColor': 'lightgreen',
+                            'color': 'black'
+                        },
+                        {
+                            'if': {
                                 'filter_query': '{Pos.} = WR1'
                             },
                             'backgroundColor': 'lightskyblue',
@@ -202,30 +262,100 @@ app.layout = html.Div(style={'backgroundColor': colors['background']}, children=
                         },
                         {
                             'if': {
-                                'filter_query': '{Pos.} = TE'
+                                'filter_query': '{Pos.} = WR3'
+                            },
+                            'backgroundColor': 'lightskyblue',
+                            'color': 'black'
+                        },
+                        {
+                            'if': {
+                                'filter_query': '{Pos.} = WR4'
+                            },
+                            'backgroundColor': 'lightskyblue',
+                            'color': 'black'
+                        },
+                        {
+                            'if': {
+                                'filter_query': '{Pos.} = WR5'
+                            },
+                            'backgroundColor': 'lightskyblue',
+                            'color': 'black'
+                        },
+                        {
+                            'if': {
+                                'filter_query': '{Pos.} = WR6'
+                            },
+                            'backgroundColor': 'lightskyblue',
+                            'color': 'black'
+                        },
+                        {
+                            'if': {
+                                'filter_query': '{Pos.} = WR7'
+                            },
+                            'backgroundColor': 'lightskyblue',
+                            'color': 'black'
+                        },
+                        {
+                            'if': {
+                                'filter_query': '{Pos.} = WR8'
+                            },
+                            'backgroundColor': 'lightskyblue',
+                            'color': 'black'
+                        },
+                        {
+                            'if': {
+                                'filter_query': '{Pos.} = WR9'
+                            },
+                            'backgroundColor': 'lightskyblue',
+                            'color': 'black'
+                        },
+                        {
+                            'if': {
+                                'filter_query': '{Pos.} = WR10'
+                            },
+                            'backgroundColor': 'lightskyblue',
+                            'color': 'black'
+                        },
+                        {
+                            'if': {
+                                'filter_query': '{Pos.} = WR11'
+                            },
+                            'backgroundColor': 'lightskyblue',
+                            'color': 'black'
+                        },
+                        {
+                            'if': {
+                                'filter_query': '{Pos.} = WR12'
+                            },
+                            'backgroundColor': 'lightskyblue',
+                            'color': 'black'
+                        },
+                        {
+                            'if': {
+                                'filter_query': '{Pos.} = WR13'
+                            },
+                            'backgroundColor': 'lightskyblue',
+                            'color': 'black'
+                        },
+                        {
+                            'if': {
+                                'filter_query': '{Pos.} = TE1'
                             },
                             'backgroundColor': 'plum',
                             'color': 'black'
                         },
                         {
                             'if': {
-                                'filter_query': '{Pos.} = FLEX'
+                                'filter_query': '{Pos.} = TE2'
                             },
-                            'backgroundColor': 'lightsalmon',
+                            'backgroundColor': 'plum',
                             'color': 'black'
                         },
                         {
                             'if': {
-                                'filter_query': '{Pos.} = D/ST'
+                                'filter_query': '{Pos.} = TE3'
                             },
-                            'backgroundColor': 'khaki',
-                            'color': 'black'
-                        },
-                        {
-                            'if': {
-                                'filter_query': '{Pos.} = K'
-                            },
-                            'backgroundColor': 'teal',
+                            'backgroundColor': 'plum',
                             'color': 'black'
                         }
                     ]
@@ -378,36 +508,56 @@ def render_bar_chart(position_selected, value_selected, n_clicks_draft, n_clicks
         drafted_player_pos = drop_pos
         if ((roster_list[0] == '-') & (drafted_player_pos == 'QB')):
             roster_list[0] = drafted_player
-        elif ((roster_list[1] == '-') & (drafted_player_pos == 'HB')):
+        elif ((roster_list[1] == '-') & (drafted_player_pos == 'QB')):
             roster_list[1] = drafted_player
-        elif ((roster_list[2] == '-') & (drafted_player_pos == 'HB')):
+        elif ((roster_list[2] == '-') & (drafted_player_pos == 'QB')):
             roster_list[2] = drafted_player
-        elif ((roster_list[3] == '-') & (drafted_player_pos == 'WR')):
+        elif ((roster_list[3] == '-') & (drafted_player_pos == 'HB')):
             roster_list[3] = drafted_player
-        elif ((roster_list[4] == '-') & (drafted_player_pos == 'WR')):
+        elif ((roster_list[4] == '-') & (drafted_player_pos == 'HB')):
             roster_list[4] = drafted_player
-        elif ((roster_list[5] == '-') & (drafted_player_pos == 'TE')):
+        elif ((roster_list[5] == '-') & (drafted_player_pos == 'HB')):
             roster_list[5] = drafted_player
-        elif ((roster_list[6] == '-') & ((drafted_player_pos == 'HB') | (drafted_player_pos == 'WR') | (drafted_player_pos == 'TE'))):
+        elif ((roster_list[6] == '-') & (drafted_player_pos == 'HB')):
             roster_list[6] = drafted_player
-        elif ((roster_list[7] == '-') & (drafted_player_pos == 'D/ST')):
+        elif ((roster_list[7] == '-') & (drafted_player_pos == 'HB')):
             roster_list[7] = drafted_player
-        elif ((roster_list[8] == '-') & (drafted_player_pos == 'K')):
+        elif ((roster_list[8] == '-') & (drafted_player_pos == 'HB')):
             roster_list[8] = drafted_player
-        elif roster_list[9] == '-':
+        elif ((roster_list[9] == '-') & (drafted_player_pos == 'HB')):
             roster_list[9] = drafted_player
-        elif roster_list[10] == '-':
+        elif ((roster_list[10] == '-') & (drafted_player_pos == 'WR')):
             roster_list[10] = drafted_player
-        elif roster_list[11] == '-':
+        elif ((roster_list[11] == '-') & (drafted_player_pos == 'WR')):
             roster_list[11] = drafted_player
-        elif roster_list[12] == '-':
+        elif ((roster_list[12] == '-') & (drafted_player_pos == 'WR')):
             roster_list[12] = drafted_player
-        elif roster_list[13] == '-':
+        elif ((roster_list[13] == '-') & (drafted_player_pos == 'WR')):
             roster_list[13] = drafted_player
-        elif roster_list[14] == '-':
+        elif ((roster_list[14] == '-') & (drafted_player_pos == 'WR')):
             roster_list[14] = drafted_player
-        elif roster_list[15] == '-':
+        elif ((roster_list[15] == '-') & (drafted_player_pos == 'WR')):
             roster_list[15] = drafted_player
+        elif ((roster_list[16] == '-') & (drafted_player_pos == 'WR')):
+            roster_list[16] = drafted_player
+        elif ((roster_list[17] == '-') & (drafted_player_pos == 'WR')):
+            roster_list[17] = drafted_player
+        elif ((roster_list[18] == '-') & (drafted_player_pos == 'WR')):
+            roster_list[18] = drafted_player
+        elif ((roster_list[19] == '-') & (drafted_player_pos == 'WR')):
+            roster_list[19] = drafted_player
+        elif ((roster_list[20] == '-') & (drafted_player_pos == 'WR')):
+            roster_list[20] = drafted_player
+        elif ((roster_list[21] == '-') & (drafted_player_pos == 'WR')):
+            roster_list[21] = drafted_player
+        elif ((roster_list[22] == '-') & (drafted_player_pos == 'WR')):
+            roster_list[22] = drafted_player
+        elif ((roster_list[23] == '-') & (drafted_player_pos == 'TE')):
+            roster_list[23] = drafted_player
+        elif ((roster_list[24] == '-') & (drafted_player_pos == 'TE')):
+            roster_list[24] = drafted_player
+        elif ((roster_list[25] == '-') & (drafted_player_pos == 'TE')):
+            roster_list[25] = drafted_player
         roster_df['Name'] = roster_list
     return {
         'data':[bardata],
