@@ -582,13 +582,13 @@ def render_bar_chart(position_selected, value_selected, n_clicks_draft, n_clicks
             roster_list[25] = drafted_player
         roster_df['Name'] = roster_list
 
-        data_stores['roster_list'] = roster_list
-        data_stores['adp_df'] = adp_df.values
-        data_stores['adp_df_columns'] = adp_df.columns
-        data_stores['roster_df'] = roster_df.values
-        data_stores['roster_df_columns'] = roster_df.columns
-        data_stores['df'] = df.values
-        data_stores['df_columns'] = df.columns
+    data_stores['roster_list'] = roster_list
+    data_stores['adp_df'] = adp_df.values
+    data_stores['adp_df_columns'] = adp_df.columns
+    data_stores['roster_df'] = roster_df.values
+    data_stores['roster_df_columns'] = roster_df.columns
+    data_stores['df'] = df.values
+    data_stores['df_columns'] = df.columns
 
     return {
         'data':[bardata],
