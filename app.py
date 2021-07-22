@@ -124,6 +124,7 @@ roster_df['Name'] = roster_list
 adp_df = adp_df.sort_values(by='ADP', ascending = True).reset_index(drop=True)
 roster_mapper = adp_df['Name'].tolist()
 roster_mapper_pos = adp_df['Position'].tolist()
+team_pos_count = {}
 
 data_stores = {}
 data_stores['roster_list'] = roster_list
@@ -133,6 +134,7 @@ data_stores['roster_df'] = roster_df.values
 data_stores['roster_df_columns'] = roster_df.columns
 data_stores['df'] = df.values
 data_stores['df_columns'] = df.columns
+data_stores['stacking_dict'] = team_pos_count
 
 colors = {
     'background': '#ffffff',
@@ -458,15 +460,12 @@ app.layout = html.Div(style={'backgroundColor': colors['background']}, children=
     dash.dependencies.State('memory-data', 'data')])
 
 def render_bar_chart(position_selected, value_selected, n_clicks_draft, n_clicks_delete, size_filter, team_filter, selected_rows, data_stores):
-    #global df
-    #global adp_df
-    #global roster_df
-    #global roster_list
 
     df = pd.DataFrame(data= data_stores['df'], columns = data_stores['df_columns'])
     adp_df = pd.DataFrame(data= data_stores['adp_df'], columns = data_stores['adp_df_columns'])
     roster_df = pd.DataFrame(data= data_stores['roster_df'], columns = data_stores['roster_df_columns'])
     roster_list = data_stores['roster_list']
+    team_pos_count = data_stores['stacking_dict']
 
     size_filter = int(size_filter)
     if len(selected_rows) > 0:
@@ -474,6 +473,55 @@ def render_bar_chart(position_selected, value_selected, n_clicks_draft, n_clicks
         drop_pos = adp_df.iloc[selected_rows, 2].to_string(index=False).strip()
         df = df[df['Name'] != drop_player].reset_index(drop=True)
         adp_df = adp_df[adp_df['Name'] != drop_player]
+        
+    #Added PPG boost for team stacking
+    if ((n_clicks_draft > n_clicks_delete) & (len(selected_rows) > 0)):
+        if drop_team not in team_pos_count.keys():
+            team_pos_count[drop_team] = {}
+        if drop_pos not in team_pos_count[drop_team].keys():
+            team_pos_count[drop_team][drop_pos] = 1
+        else:
+            team_pos_count[drop_team][drop_pos] += 1
+        if (drop_pos == 'QB') & (team_pos_count[drop_team][drop_pos] == 1):
+            df.loc[(df['Team'] == drop_team) & (df['Position'] == 'WR'), 'PPG+'] += 1.5
+            df.loc[(df['Team'] == drop_team) & (df['Position'] == 'WR'), 'PPG PROJECTION'] += 1.5
+            df.loc[(df['Team'] == drop_team) & (df['Position'] == 'HB'), 'PPG+'] += 1.0
+            df.loc[(df['Team'] == drop_team) & (df['Position'] == 'HB'), 'PPG PROJECTION'] += 1.0
+            df.loc[(df['Team'] == drop_team) & (df['Position'] == 'TE'), 'PPG+'] += 1.0
+            df.loc[(df['Team'] == drop_team) & (df['Position'] == 'TE'), 'PPG PROJECTION'] += 1.0
+        if (drop_pos == 'HB') & (team_pos_count[drop_team][drop_pos] == 1):
+            df.loc[(df['Team'] == drop_team) & (df['Position'] == 'WR'), 'PPG+'] += 0.5
+            df.loc[(df['Team'] == drop_team) & (df['Position'] == 'WR'), 'PPG PROJECTION'] += 0.5
+            df.loc[(df['Team'] == drop_team) & (df['Position'] == 'QB'), 'PPG+'] += 1.0
+            df.loc[(df['Team'] == drop_team) & (df['Position'] == 'QB'), 'PPG PROJECTION'] += 1.0
+            df.loc[(df['Team'] == drop_team) & (df['Position'] == 'TE'), 'PPG+'] += 0.25
+            df.loc[(df['Team'] == drop_team) & (df['Position'] == 'TE'), 'PPG PROJECTION'] += 0.25
+        if (drop_pos == 'TE') & (team_pos_count[drop_team][drop_pos] == 1):
+            df.loc[(df['Team'] == drop_team) & (df['Position'] == 'WR'), 'PPG+'] += 0.5
+            df.loc[(df['Team'] == drop_team) & (df['Position'] == 'WR'), 'PPG PROJECTION'] += 0.5
+            df.loc[(df['Team'] == drop_team) & (df['Position'] == 'QB'), 'PPG+'] += 1.0
+            df.loc[(df['Team'] == drop_team) & (df['Position'] == 'QB'), 'PPG PROJECTION'] += 1.0
+            df.loc[(df['Team'] == drop_team) & (df['Position'] == 'TE'), 'PPG+'] += 0.25
+            df.loc[(df['Team'] == drop_team) & (df['Position'] == 'TE'), 'PPG PROJECTION'] += 0.25
+        if (drop_pos == 'WR') & (team_pos_count[drop_team][drop_pos] == 1):
+            df.loc[(df['Team'] == drop_team) & (df['Position'] == 'HB'), 'PPG+'] += 0.5
+            df.loc[(df['Team'] == drop_team) & (df['Position'] == 'HB'), 'PPG PROJECTION'] += 0.5
+            df.loc[(df['Team'] == drop_team) & (df['Position'] == 'QB'), 'PPG+'] += 1.5
+            df.loc[(df['Team'] == drop_team) & (df['Position'] == 'QB'), 'PPG PROJECTION'] += 1.5
+            df.loc[(df['Team'] == drop_team) & (df['Position'] == 'TE'), 'PPG+'] += 0.25
+            df.loc[(df['Team'] == drop_team) & (df['Position'] == 'TE'), 'PPG PROJECTION'] += 0.25
+            df.loc[(df['Team'] == drop_team) & (df['Position'] == 'WR'), 'PPG+'] += 1.0
+            df.loc[(df['Team'] == drop_team) & (df['Position'] == 'WR'), 'PPG PROJECTION'] += 1.0
+        if (drop_pos == 'WR') & (team_pos_count[drop_team][drop_pos] == 2):
+            df.loc[(df['Team'] == drop_team) & (df['Position'] == 'HB'), 'PPG+'] += 0.25
+            df.loc[(df['Team'] == drop_team) & (df['Position'] == 'HB'), 'PPG PROJECTION'] += 0.25
+            df.loc[(df['Team'] == drop_team) & (df['Position'] == 'QB'), 'PPG+'] += 1.5
+            df.loc[(df['Team'] == drop_team) & (df['Position'] == 'QB'), 'PPG PROJECTION'] += 1.5
+            df.loc[(df['Team'] == drop_team) & (df['Position'] == 'TE'), 'PPG+'] += 0.25
+            df.loc[(df['Team'] == drop_team) & (df['Position'] == 'TE'), 'PPG PROJECTION'] += 0.25
+            df.loc[(df['Team'] == drop_team) & (df['Position'] == 'WR'), 'PPG+'] += 0.75
+            df.loc[(df['Team'] == drop_team) & (df['Position'] == 'WR'), 'PPG PROJECTION'] += 0.75
+
     if position_selected == 'ALL':
         filtered_df = df[(df['Position'] != 'D/ST') & (df['Position'] != 'K')].copy()
     elif position_selected == 'FLEX':
@@ -589,6 +637,7 @@ def render_bar_chart(position_selected, value_selected, n_clicks_draft, n_clicks
     data_stores['roster_df_columns'] = roster_df.columns
     data_stores['df'] = df.values
     data_stores['df_columns'] = df.columns
+    data_stores['stacking_dict'] = team_pos_count
 
     return {
         'data':[bardata],
