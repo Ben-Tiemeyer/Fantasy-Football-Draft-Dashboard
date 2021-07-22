@@ -476,7 +476,6 @@ def render_bar_chart(position_selected, value_selected, n_clicks_draft, n_clicks
         
     #Added PPG boost for team stacking
     if ((n_clicks_draft > n_clicks_delete) & (len(selected_rows) > 0)):
-        print('we did it')
         if drop_team not in team_pos_count.keys():
             team_pos_count[drop_team] = {}
         if drop_pos not in team_pos_count[drop_team].keys():
@@ -522,60 +521,7 @@ def render_bar_chart(position_selected, value_selected, n_clicks_draft, n_clicks
             df.loc[(df['Team'] == drop_team) & (df['Position'] == 'TE'), 'PPG PROJECTION'] += 0.25
             df.loc[(df['Team'] == drop_team) & (df['Position'] == 'WR'), 'PPG+'] += 0.75
             df.loc[(df['Team'] == drop_team) & (df['Position'] == 'WR'), 'PPG PROJECTION'] += 0.75
-        print('I knew we could')
-
-    if position_selected == 'ALL':
-        filtered_df = df[(df['Position'] != 'D/ST') & (df['Position'] != 'K')].copy()
-    elif position_selected == 'FLEX':
-        filtered_df = df[(df['Position'] == 'HB') | (df['Position'] == 'WR') | (df['Position'] == 'TE')]
-    else:
-        filtered_df = df[(df['Position'] == position_selected)]
-    if team_filter != 'ALL TEAMS':
-        filtered_df = filtered_df[filtered_df['Team'] == team_filter]
-    color_dict = {'QB': 'lightgrey',
-          'HB': 'lightgreen',
-          'WR': 'lightskyblue',
-          'TE': 'plum',
-          'D/ST': 'khaki',
-          'K': 'teal'}
-    if value_selected == 'POINTS PER GAME':
-        if team_filter != 'ALL TEAMS':
-            filtered_df = filtered_df.sort_values(by='PPG PROJECTION', ascending=False)[::-1]
-        else:
-            filtered_df = filtered_df.sort_values(by='PPG PROJECTION', ascending=False)[:size_filter][::-1]
-        filtered_df['Text'] = '(' + df['ADP'].round(1).astype(str) + ') ' + df['Name'] + ': ' + filtered_df['PPG PROJECTION'].round(1).astype(str)
-        positions = filtered_df['Position'].tolist()
-        bar_colors = []
-        for pos in positions:
-            bar_colors.append(color_dict[pos])
-        bardata = go.Bar(y=filtered_df['Name'],
-                         x=filtered_df['PPG PROJECTION'],
-                         orientation = 'h',
-                         text = filtered_df['Text'],
-                         marker_color = bar_colors,
-                         marker_line_color = 'black',
-                         marker_line_width = 1,
-                         textposition = 'auto')
-    else:
-        if team_filter != 'ALL TEAMS':
-            filtered_df = filtered_df.sort_values(by='PPG+', ascending=False)[::-1]
-        else:
-            filtered_df = filtered_df.sort_values(by='PPG+', ascending=False)[:size_filter][::-1]
-        filtered_df['Text'] = '(' + df['ADP'].round(1).astype(str) + ') ' + df['Name'] + ': ' + filtered_df['PPG+'].round(1).astype(str)
-        positions = filtered_df['Position'].tolist()
-        bar_colors = []
-        for pos in positions:
-            bar_colors.append(color_dict[pos])
-        bardata = go.Bar(y=filtered_df['Name'],
-                         x=filtered_df['PPG+'],
-                         orientation = 'h',
-                         text = filtered_df['Text'],
-                         marker_color = bar_colors,
-                         marker_line_color = 'black',
-                         marker_line_width = 1,
-                         textposition = 'auto')
         
-    if ((n_clicks_draft > n_clicks_delete) & (len(selected_rows) > 0)):
         drafted_player = drop_player
         drafted_player_pos = drop_pos
         if ((roster_list[0] == '-') & (drafted_player_pos == 'QB')):
@@ -631,6 +577,58 @@ def render_bar_chart(position_selected, value_selected, n_clicks_draft, n_clicks
         elif ((roster_list[25] == '-') & (drafted_player_pos == 'TE')):
             roster_list[25] = drafted_player
         roster_df['Name'] = roster_list
+        
+
+    if position_selected == 'ALL':
+        filtered_df = df[(df['Position'] != 'D/ST') & (df['Position'] != 'K')].copy()
+    elif position_selected == 'FLEX':
+        filtered_df = df[(df['Position'] == 'HB') | (df['Position'] == 'WR') | (df['Position'] == 'TE')]
+    else:
+        filtered_df = df[(df['Position'] == position_selected)]
+    if team_filter != 'ALL TEAMS':
+        filtered_df = filtered_df[filtered_df['Team'] == team_filter]
+    color_dict = {'QB': 'lightgrey',
+          'HB': 'lightgreen',
+          'WR': 'lightskyblue',
+          'TE': 'plum',
+          'D/ST': 'khaki',
+          'K': 'teal'}
+    if value_selected == 'POINTS PER GAME':
+        if team_filter != 'ALL TEAMS':
+            filtered_df = filtered_df.sort_values(by='PPG PROJECTION', ascending=False)[::-1]
+        else:
+            filtered_df = filtered_df.sort_values(by='PPG PROJECTION', ascending=False)[:size_filter][::-1]
+        filtered_df['Text'] = '(' + df['ADP'].round(1).astype(str) + ') ' + df['Name'] + ': ' + filtered_df['PPG PROJECTION'].round(1).astype(str)
+        positions = filtered_df['Position'].tolist()
+        bar_colors = []
+        for pos in positions:
+            bar_colors.append(color_dict[pos])
+        bardata = go.Bar(y=filtered_df['Name'],
+                         x=filtered_df['PPG PROJECTION'],
+                         orientation = 'h',
+                         text = filtered_df['Text'],
+                         marker_color = bar_colors,
+                         marker_line_color = 'black',
+                         marker_line_width = 1,
+                         textposition = 'auto')
+    else:
+        if team_filter != 'ALL TEAMS':
+            filtered_df = filtered_df.sort_values(by='PPG+', ascending=False)[::-1]
+        else:
+            filtered_df = filtered_df.sort_values(by='PPG+', ascending=False)[:size_filter][::-1]
+        filtered_df['Text'] = '(' + df['ADP'].round(1).astype(str) + ') ' + df['Name'] + ': ' + filtered_df['PPG+'].round(1).astype(str)
+        positions = filtered_df['Position'].tolist()
+        bar_colors = []
+        for pos in positions:
+            bar_colors.append(color_dict[pos])
+        bardata = go.Bar(y=filtered_df['Name'],
+                         x=filtered_df['PPG+'],
+                         orientation = 'h',
+                         text = filtered_df['Text'],
+                         marker_color = bar_colors,
+                         marker_line_color = 'black',
+                         marker_line_width = 1,
+                         textposition = 'auto')
 
     data_stores['roster_list'] = roster_list
     data_stores['adp_df'] = adp_df.values
