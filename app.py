@@ -475,13 +475,13 @@ def render_bar_chart(position_selected, value_selected, n_clicks_draft, n_clicks
         adp_df = adp_df[adp_df['Name'] != drop_player]
         
         #Added PPG boost for team stacking
-        if n_clicks_draft > n_clicks_delete:
-            if drop_team not in team_pos_count.keys():
-                team_pos_count[drop_team] = {}
-            if drop_pos not in team_pos_count[drop_team].keys():
-                team_pos_count[drop_team][drop_pos] = 1
-            else:
-                team_pos_count[drop_team][drop_pos] += 1
+        #if n_clicks_draft > n_clicks_delete:
+            #if drop_team not in team_pos_count.keys():
+            #    team_pos_count[drop_team] = {}
+            #if drop_pos not in team_pos_count[drop_team].keys():
+            #    team_pos_count[drop_team][drop_pos] = 1
+            #else:
+            #    team_pos_count[drop_team][drop_pos] += 1
             #if (drop_pos == 'QB') & (team_pos_count[drop_team][drop_pos] == 1):
             #    df.loc[(df['Team'] == drop_team) & (df['Position'] == 'WR'), 'PPG+'] += 1.5
             #    df.loc[(df['Team'] == drop_team) & (df['Position'] == 'WR'), 'PPG PROJECTION'] += 1.5
