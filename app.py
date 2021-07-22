@@ -472,56 +472,56 @@ def render_bar_chart(position_selected, value_selected, n_clicks_draft, n_clicks
     if len(selected_rows) > 0:
         drop_player = adp_df.iloc[selected_rows, 1].to_string(index=False).strip()
         drop_pos = adp_df.iloc[selected_rows, 2].to_string(index=False).strip()
+        drop_team = adp_df.iloc[selected_rows, 3].to_string(index=False).strip()
         df = df[df['Name'] != drop_player].reset_index(drop=True)
         adp_df = adp_df[adp_df['Name'] != drop_player]
         
         #Added PPG boost for team stacking
         if n_clicks_draft > n_clicks_delete:
             if drop_team not in team_pos_count.columns.tolist():
-                test_var = 'i'
-            #    team_pos_count[drop_team] = 0
-            #    team_pos_count[drop_team][drop_pos] = 1
-            #else:
-            #    team_pos_count[drop_team][drop_pos] += 1
-            #if (drop_pos == 'QB') & (team_pos_count[drop_team][drop_pos] == 1):
-            #    df.loc[(df['Team'] == drop_team) & (df['Position'] == 'WR'), 'PPG+'] += 1.5
-            #    df.loc[(df['Team'] == drop_team) & (df['Position'] == 'WR'), 'PPG PROJECTION'] += 1.5
-            #    df.loc[(df['Team'] == drop_team) & (df['Position'] == 'HB'), 'PPG+'] += 1.25
-            #    df.loc[(df['Team'] == drop_team) & (df['Position'] == 'HB'), 'PPG PROJECTION'] += 1.25
-            #    df.loc[(df['Team'] == drop_team) & (df['Position'] == 'TE'), 'PPG+'] += 1.5
-            #    df.loc[(df['Team'] == drop_team) & (df['Position'] == 'TE'), 'PPG PROJECTION'] += 1.5
-            #if (drop_pos == 'HB') & (team_pos_count[drop_team][drop_pos] == 1):
-            #    df.loc[(df['Team'] == drop_team) & (df['Position'] == 'WR'), 'PPG+'] += 0.75
-            #    df.loc[(df['Team'] == drop_team) & (df['Position'] == 'WR'), 'PPG PROJECTION'] += 0.75
-            #    df.loc[(df['Team'] == drop_team) & (df['Position'] == 'QB'), 'PPG+'] += 1.25
-            #    df.loc[(df['Team'] == drop_team) & (df['Position'] == 'QB'), 'PPG PROJECTION'] += 1.25
-            #    df.loc[(df['Team'] == drop_team) & (df['Position'] == 'TE'), 'PPG+'] += 0.5
-            #    df.loc[(df['Team'] == drop_team) & (df['Position'] == 'TE'), 'PPG PROJECTION'] += 0.5
-            #if (drop_pos == 'TE') & (team_pos_count[drop_team][drop_pos] == 1):
-            #    df.loc[(df['Team'] == drop_team) & (df['Position'] == 'WR'), 'PPG+'] += 1.0
-            #    df.loc[(df['Team'] == drop_team) & (df['Position'] == 'WR'), 'PPG PROJECTION'] += 1.0
-            #    df.loc[(df['Team'] == drop_team) & (df['Position'] == 'QB'), 'PPG+'] += 1.5
-            #    df.loc[(df['Team'] == drop_team) & (df['Position'] == 'QB'), 'PPG PROJECTION'] += 1.5
-            #    df.loc[(df['Team'] == drop_team) & (df['Position'] == 'HB'), 'PPG+'] += 0.5
-            #    df.loc[(df['Team'] == drop_team) & (df['Position'] == 'HB'), 'PPG PROJECTION'] += 0.5
-            #if (drop_pos == 'WR') & (team_pos_count[drop_team][drop_pos] == 1):
-            #    df.loc[(df['Team'] == drop_team) & (df['Position'] == 'HB'), 'PPG+'] += 0.75
-            #    df.loc[(df['Team'] == drop_team) & (df['Position'] == 'HB'), 'PPG PROJECTION'] += 0.75
-            #    df.loc[(df['Team'] == drop_team) & (df['Position'] == 'QB'), 'PPG+'] += 1.5
-            #    df.loc[(df['Team'] == drop_team) & (df['Position'] == 'QB'), 'PPG PROJECTION'] += 1.5
-            #    df.loc[(df['Team'] == drop_team) & (df['Position'] == 'TE'), 'PPG+'] += 1.0
-            #    df.loc[(df['Team'] == drop_team) & (df['Position'] == 'TE'), 'PPG PROJECTION'] += 1.0
-            #    df.loc[(df['Team'] == drop_team) & (df['Position'] == 'WR'), 'PPG+'] += 1.0
-            #    df.loc[(df['Team'] == drop_team) & (df['Position'] == 'WR'), 'PPG PROJECTION'] += 1.0
-            #if (drop_pos == 'WR') & (team_pos_count[drop_team][drop_pos] == 2):
-            #    df.loc[(df['Team'] == drop_team) & (df['Position'] == 'HB'), 'PPG+'] += 0.5
-            #    df.loc[(df['Team'] == drop_team) & (df['Position'] == 'HB'), 'PPG PROJECTION'] += 0.5
-            #    df.loc[(df['Team'] == drop_team) & (df['Position'] == 'QB'), 'PPG+'] += 1.25
-            #    df.loc[(df['Team'] == drop_team) & (df['Position'] == 'QB'), 'PPG PROJECTION'] += 1.25
-            #    df.loc[(df['Team'] == drop_team) & (df['Position'] == 'TE'), 'PPG+'] += 0.75
-            #    df.loc[(df['Team'] == drop_team) & (df['Position'] == 'TE'), 'PPG PROJECTION'] += 0.75
-            #    df.loc[(df['Team'] == drop_team) & (df['Position'] == 'WR'), 'PPG+'] += 0.75
-            #    df.loc[(df['Team'] == drop_team) & (df['Position'] == 'WR'), 'PPG PROJECTION'] += 0.75
+                team_pos_count[drop_team] = 0
+                team_pos_count[drop_team][drop_pos] = 1
+            else:
+                team_pos_count[drop_team][drop_pos] += 1
+            if (drop_pos == 'QB') & (team_pos_count[drop_team][drop_pos] == 1):
+                df.loc[(df['Team'] == drop_team) & (df['Position'] == 'WR'), 'PPG+'] += 1.5
+                df.loc[(df['Team'] == drop_team) & (df['Position'] == 'WR'), 'PPG PROJECTION'] += 1.5
+                df.loc[(df['Team'] == drop_team) & (df['Position'] == 'HB'), 'PPG+'] += 1.25
+                df.loc[(df['Team'] == drop_team) & (df['Position'] == 'HB'), 'PPG PROJECTION'] += 1.25
+                df.loc[(df['Team'] == drop_team) & (df['Position'] == 'TE'), 'PPG+'] += 1.5
+                df.loc[(df['Team'] == drop_team) & (df['Position'] == 'TE'), 'PPG PROJECTION'] += 1.5
+            if (drop_pos == 'HB') & (team_pos_count[drop_team][drop_pos] == 1):
+                df.loc[(df['Team'] == drop_team) & (df['Position'] == 'WR'), 'PPG+'] += 0.75
+                df.loc[(df['Team'] == drop_team) & (df['Position'] == 'WR'), 'PPG PROJECTION'] += 0.75
+                df.loc[(df['Team'] == drop_team) & (df['Position'] == 'QB'), 'PPG+'] += 1.25
+                df.loc[(df['Team'] == drop_team) & (df['Position'] == 'QB'), 'PPG PROJECTION'] += 1.25
+                df.loc[(df['Team'] == drop_team) & (df['Position'] == 'TE'), 'PPG+'] += 0.5
+                df.loc[(df['Team'] == drop_team) & (df['Position'] == 'TE'), 'PPG PROJECTION'] += 0.5
+            if (drop_pos == 'TE') & (team_pos_count[drop_team][drop_pos] == 1):
+                df.loc[(df['Team'] == drop_team) & (df['Position'] == 'WR'), 'PPG+'] += 1.0
+                df.loc[(df['Team'] == drop_team) & (df['Position'] == 'WR'), 'PPG PROJECTION'] += 1.0
+                df.loc[(df['Team'] == drop_team) & (df['Position'] == 'QB'), 'PPG+'] += 1.5
+                df.loc[(df['Team'] == drop_team) & (df['Position'] == 'QB'), 'PPG PROJECTION'] += 1.5
+                df.loc[(df['Team'] == drop_team) & (df['Position'] == 'HB'), 'PPG+'] += 0.5
+                df.loc[(df['Team'] == drop_team) & (df['Position'] == 'HB'), 'PPG PROJECTION'] += 0.5
+            if (drop_pos == 'WR') & (team_pos_count[drop_team][drop_pos] == 1):
+                df.loc[(df['Team'] == drop_team) & (df['Position'] == 'HB'), 'PPG+'] += 0.75
+                df.loc[(df['Team'] == drop_team) & (df['Position'] == 'HB'), 'PPG PROJECTION'] += 0.75
+                df.loc[(df['Team'] == drop_team) & (df['Position'] == 'QB'), 'PPG+'] += 1.5
+                df.loc[(df['Team'] == drop_team) & (df['Position'] == 'QB'), 'PPG PROJECTION'] += 1.5
+                df.loc[(df['Team'] == drop_team) & (df['Position'] == 'TE'), 'PPG+'] += 1.0
+                df.loc[(df['Team'] == drop_team) & (df['Position'] == 'TE'), 'PPG PROJECTION'] += 1.0
+                df.loc[(df['Team'] == drop_team) & (df['Position'] == 'WR'), 'PPG+'] += 1.0
+                df.loc[(df['Team'] == drop_team) & (df['Position'] == 'WR'), 'PPG PROJECTION'] += 1.0
+            if (drop_pos == 'WR') & (team_pos_count[drop_team][drop_pos] == 2):
+                df.loc[(df['Team'] == drop_team) & (df['Position'] == 'HB'), 'PPG+'] += 0.5
+                df.loc[(df['Team'] == drop_team) & (df['Position'] == 'HB'), 'PPG PROJECTION'] += 0.5
+                df.loc[(df['Team'] == drop_team) & (df['Position'] == 'QB'), 'PPG+'] += 1.25
+                df.loc[(df['Team'] == drop_team) & (df['Position'] == 'QB'), 'PPG PROJECTION'] += 1.25
+                df.loc[(df['Team'] == drop_team) & (df['Position'] == 'TE'), 'PPG+'] += 0.75
+                df.loc[(df['Team'] == drop_team) & (df['Position'] == 'TE'), 'PPG PROJECTION'] += 0.75
+                df.loc[(df['Team'] == drop_team) & (df['Position'] == 'WR'), 'PPG+'] += 0.75
+                df.loc[(df['Team'] == drop_team) & (df['Position'] == 'WR'), 'PPG PROJECTION'] += 0.75
 
     if position_selected == 'ALL':
         filtered_df = df[(df['Position'] != 'D/ST') & (df['Position'] != 'K')].copy()
