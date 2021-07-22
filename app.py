@@ -476,6 +476,7 @@ def render_bar_chart(position_selected, value_selected, n_clicks_draft, n_clicks
         
     #Added PPG boost for team stacking
     if ((n_clicks_draft > n_clicks_delete) & (len(selected_rows) > 0)):
+        print('we did it')
         if drop_team not in team_pos_count.keys():
             team_pos_count[drop_team] = {}
         if drop_pos not in team_pos_count[drop_team].keys():
@@ -521,6 +522,7 @@ def render_bar_chart(position_selected, value_selected, n_clicks_draft, n_clicks
             df.loc[(df['Team'] == drop_team) & (df['Position'] == 'TE'), 'PPG PROJECTION'] += 0.25
             df.loc[(df['Team'] == drop_team) & (df['Position'] == 'WR'), 'PPG+'] += 0.75
             df.loc[(df['Team'] == drop_team) & (df['Position'] == 'WR'), 'PPG PROJECTION'] += 0.75
+        print('I knew we could')
 
     if position_selected == 'ALL':
         filtered_df = df[(df['Position'] != 'D/ST') & (df['Position'] != 'K')].copy()
