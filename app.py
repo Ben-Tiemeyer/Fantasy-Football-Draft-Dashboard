@@ -134,8 +134,7 @@ data_stores['roster_df'] = roster_df.values
 data_stores['roster_df_columns'] = roster_df.columns
 data_stores['df'] = df.values
 data_stores['df_columns'] = df.columns
-data_stores['stacking_dict_keys'] = team_pos_count.keys().tolist()
-data_stores['stacking_dict_values'] = team_pos_count.values().tolist()
+data_stores['stacking_dict'] = team_pos_count
 
 colors = {
     'background': '#ffffff',
@@ -466,7 +465,7 @@ def render_bar_chart(position_selected, value_selected, n_clicks_draft, n_clicks
     adp_df = pd.DataFrame(data= data_stores['adp_df'], columns = data_stores['adp_df_columns'])
     roster_df = pd.DataFrame(data= data_stores['roster_df'], columns = data_stores['roster_df_columns'])
     roster_list = data_stores['roster_list']
-    team_pos_count = dict(zip(data_stores['stacking_dict_keys'], data_stores['stacking_dict_values']))
+    team_pos_count = data_stores['stacking_dict']
 
     size_filter = int(size_filter)
     if len(selected_rows) > 0:
@@ -639,8 +638,7 @@ def render_bar_chart(position_selected, value_selected, n_clicks_draft, n_clicks
     data_stores['roster_df_columns'] = roster_df.columns
     data_stores['df'] = df.values
     data_stores['df_columns'] = df.columns
-    data_stores['stacking_dict_keys'] = team_pos_count.keys().tolist()
-    data_stores['stacking_dict_values'] = team_pos_count.values().tolist()
+    data_stores['stacking_dict'] = team_pos_count
 
     return {
         'data':[bardata],
