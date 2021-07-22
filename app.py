@@ -125,6 +125,7 @@ adp_df = adp_df.sort_values(by='ADP', ascending = True).reset_index(drop=True)
 roster_mapper = adp_df['Name'].tolist()
 roster_mapper_pos = adp_df['Position'].tolist()
 stacking_df = pd.DataFrame(index = ['QB', 'HB', 'WR', 'TE'])
+stacking_df['SA'] = 0
 
 data_stores = {}
 data_stores['roster_list'] = roster_list
