@@ -475,7 +475,8 @@ def render_bar_chart(position_selected, value_selected, n_clicks_draft, n_clicks
         adp_df = adp_df[adp_df['Name'] != drop_player]
         
         #Added PPG boost for team stacking
-        #if n_clicks_draft > n_clicks_delete:
+        if n_clicks_draft > n_clicks_delete:
+            test_var = 'test'
             #if drop_team not in team_pos_count.keys():
             #    team_pos_count[drop_team] = {}
             #if drop_pos not in team_pos_count[drop_team].keys():
