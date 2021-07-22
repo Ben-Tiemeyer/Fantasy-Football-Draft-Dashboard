@@ -134,7 +134,8 @@ data_stores['roster_df'] = roster_df.values
 data_stores['roster_df_columns'] = roster_df.columns
 data_stores['df'] = df.values
 data_stores['df_columns'] = df.columns
-data_stores['stacking_dict'] = team_pos_count
+data_stores['stacking_dict_keys'] = team_pos_count.keys()
+data_stores['stacking_dict_values'] = team_pos_count.values()
 
 colors = {
     'background': '#ffffff',
@@ -465,7 +466,7 @@ def render_bar_chart(position_selected, value_selected, n_clicks_draft, n_clicks
     adp_df = pd.DataFrame(data= data_stores['adp_df'], columns = data_stores['adp_df_columns'])
     roster_df = pd.DataFrame(data= data_stores['roster_df'], columns = data_stores['roster_df_columns'])
     roster_list = data_stores['roster_list']
-    team_pos_count = data_stores['stacking_dict']
+    team_pos_count = dict(zip(data_stores['stacking_dict_keys'], data_stores['stacking_dict_values']))
 
     size_filter = int(size_filter)
     if len(selected_rows) > 0:
@@ -476,13 +477,12 @@ def render_bar_chart(position_selected, value_selected, n_clicks_draft, n_clicks
         
         #Added PPG boost for team stacking
         if n_clicks_draft > n_clicks_delete:
-            test_var = 'test'
-            #if drop_team not in team_pos_count.keys():
-            #    team_pos_count[drop_team] = {}
-            #if drop_pos not in team_pos_count[drop_team].keys():
-            #    team_pos_count[drop_team][drop_pos] = 1
-            #else:
-            #    team_pos_count[drop_team][drop_pos] += 1
+            if drop_team not in team_pos_count.keys():
+                team_pos_count[drop_team] = {}
+            if drop_pos not in team_pos_count[drop_team].keys():
+                team_pos_count[drop_team][drop_pos] = 1
+            else:
+                team_pos_count[drop_team][drop_pos] += 1
             #if (drop_pos == 'QB') & (team_pos_count[drop_team][drop_pos] == 1):
             #    df.loc[(df['Team'] == drop_team) & (df['Position'] == 'WR'), 'PPG+'] += 1.5
             #    df.loc[(df['Team'] == drop_team) & (df['Position'] == 'WR'), 'PPG PROJECTION'] += 1.5
@@ -639,7 +639,8 @@ def render_bar_chart(position_selected, value_selected, n_clicks_draft, n_clicks
     data_stores['roster_df_columns'] = roster_df.columns
     data_stores['df'] = df.values
     data_stores['df_columns'] = df.columns
-    data_stores['stacking_dict'] = team_pos_count
+    data_stores['stacking_dict_keys'] = team_pos_count.keys()
+    data_stores['stacking_dict_values'] = team_pos_count.values()
 
     return {
         'data':[bardata],
