@@ -572,8 +572,9 @@ def render_bar_chart(position_selected, value_selected, n_clicks_draft, n_clicks
                          marker_line_color = 'black',
                          marker_line_width = 1,
                          textposition = 'auto')
-
+    print('iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii')
     if ((n_clicks_draft > n_clicks_delete) & (len(selected_rows) > 0)):
+        print('------____[[[]]]]]_____--------')
         drafted_player = drop_player
         drafted_player_pos = drop_pos
         if ((roster_list[0] == '-') & (drafted_player_pos == 'QB')):
