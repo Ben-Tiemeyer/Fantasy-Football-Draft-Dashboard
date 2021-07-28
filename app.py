@@ -92,7 +92,7 @@ df = df.sort_values(by='PPG PROJECTION', ascending=False).reset_index(drop=True)
 df['PPG PROJECTION'] = df['PPG PROJECTION'].astype(float)
 df = df[df['PPG PROJECTION'] > 1]
 teams_list = df['Team'].unique().tolist()
-position_list = ['ALL', 'QB', 'HB', 'WR', 'TE', 'FLEX']
+position_list = ['ALL', 'QB', 'HB', 'WR', 'RB/WR', 'TE', 'FLEX']
 ## Calculate Value at each postion above hardcoded avg. points / game of replacement player
 df.loc[df['Position'] == 'QB', 'PPG+'] = df.loc[df['Position'] == 'QB', 'PPG PROJECTION'] - 16.34
 df.loc[df['Position'] == 'HB', 'PPG+'] = df.loc[df['Position'] == 'HB', 'PPG PROJECTION'] - 12.43
@@ -527,6 +527,8 @@ def render_bar_chart(position_selected, value_selected, n_clicks_draft, n_clicks
         filtered_df = df[(df['Position'] != 'D/ST') & (df['Position'] != 'K')].copy()
     elif position_selected == 'FLEX':
         filtered_df = df[(df['Position'] == 'HB') | (df['Position'] == 'WR') | (df['Position'] == 'TE')]
+    elif position_selected == 'RB/WR':
+        filtered_df = df[(df['Position'] == 'HB') | (df['Position'] == 'WR')]
     else:
         filtered_df = df[(df['Position'] == position_selected)]
     if team_filter != 'ALL TEAMS':
