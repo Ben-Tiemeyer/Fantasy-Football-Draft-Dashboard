@@ -22,7 +22,7 @@ server.wsgi_app = WhiteNoise(server.wsgi_app, root = 'static/')
 
 league_size = 12
 
-url = 'https://www.fantasypros.com/nfl/adp/ppr-overall.php'
+url = 'https://www.fantasypros.com/nfl/adp/best-ball-overall.php'
 ff_html = urlopen(url)
 soup = BeautifulSoup(ff_html, features="lxml")
 rows = soup.findAll('tr')
@@ -105,7 +105,7 @@ adp_mapper = dict(zip(adp_df['Name'], adp_df['ADP']))
 df['ADP'] = df['Name'].map(adp_mapper)
 df['ADP'] = df['ADP']/league_size
 df['ADP'] =df['ADP'].round(2)
-df['Text'] = df['PPG PROJECTION'].round(1).astype(str) + ' - ' + df['Name'] + ' (' + df['ADP'].round(1).astype(str) + ')'
+df['Text'] = df['PPG PROJECTION'].round(1).astype(str) + ' - ' + df['Name'] + ' (' + (df['ADP']+1).round(1).astype(str) + ')'
 
 teams_list = sorted(df['Team'].unique().tolist())
 teams_list.insert(0, 'ALL TEAMS')
