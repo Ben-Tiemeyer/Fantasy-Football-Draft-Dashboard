@@ -1,9 +1,9 @@
-dash==1.0.0
-dash-core-components==1.0.0
-dash-html-components==1.0.0
-dash-renderer==1.0.0
-dash-table==4.0.0
-gunicorn==20.1.0
+dash
+dash-core-components
+dash-html-components
+dash-renderer
+dash-table
+gunicorn
 matplotlib==3.0.3
 numpy
 pandas
