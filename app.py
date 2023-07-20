@@ -6,7 +6,6 @@ from matplotlib import animation
 import dash_table
 import numpy as np
 import pandas as pd
-import sys
 import requests
 from bs4 import BeautifulSoup
 import time
@@ -15,6 +14,8 @@ import plotly.graph_objs as go
 import datetime
 import gunicorn
 from whitenoise import WhiteNoise
+import sys
+from bs4 import BeautifulSoup
 
 app = dash.Dash(__name__, external_stylesheets = ['/assets/style_sheet.css'])
 server = app.server
@@ -48,9 +49,15 @@ for pos in ['QB', 'RB', 'WR', 'TE']:
     rows = soup.findAll('tr')
     projections = [[td.getText() for td in rows[i].findAll('td')] for i in range(len(rows))]
     projections = pd.DataFrame(projections)[2:].reset_index(drop=True)
-    if pos == 'RB' or pos == 'WR':
+    if pos == 'RB':
         projections.columns = ['Name', 'Rushes', 'Rush Yards', 'Rush TDs', 'Receptions', 'Rec Yards', 'Rec TDs', 'Fumbles', 'PPG PROJECTION']
         projections = projections[projections['Receptions'].notna()]
+        projections['rush_bonus'] = ((projections['Rush Yards'].str.replace(',', '').astype(float) / 17) * .015) * 17
+        projections['rec_bonus'] = ((projections['Rec Yards'].str.replace(',', '').astype(float) / 17) * .015) * 17
+        projections['PPG PROJECTION'] = (projections['PPG PROJECTION'].astype(float) + projections['rush_bonus'].astype(float) + projections['rec_bonus'].astype(float)  + projections['Fumbles'].astype(float)) / 17
+    elif pos == 'WR':
+        projections.columns = ['Name', 'Receptions', 'Rec Yards', 'Rec TDs', 'Rushes', 'Rush Yards', 'Rush TDs', 'Fumbles', 'PPG PROJECTION']
+        projections = projections[projections['Rushes'].notna()]
         projections['rush_bonus'] = ((projections['Rush Yards'].str.replace(',', '').astype(float) / 17) * .015) * 17
         projections['rec_bonus'] = ((projections['Rec Yards'].str.replace(',', '').astype(float) / 17) * .015) * 17
         projections['PPG PROJECTION'] = (projections['PPG PROJECTION'].astype(float) + projections['rush_bonus'].astype(float) + projections['rec_bonus'].astype(float)  + projections['Fumbles'].astype(float)) / 17
@@ -94,10 +101,10 @@ df = df[df['PPG PROJECTION'] > 1]
 teams_list = df['Team'].unique().tolist()
 position_list = ['ALL', 'QB', 'HB', 'WR', 'RB/WR', 'TE', 'FLEX']
 ## Calculate Value at each postion above hardcoded avg. points / game of replacement player
-df.loc[df['Position'] == 'QB', 'PPG+'] = df.loc[df['Position'] == 'QB', 'PPG PROJECTION'] - 16.34
-df.loc[df['Position'] == 'HB', 'PPG+'] = df.loc[df['Position'] == 'HB', 'PPG PROJECTION'] - 12.43
-df.loc[df['Position'] == 'WR', 'PPG+'] = df.loc[df['Position'] == 'WR', 'PPG PROJECTION'] - 11.96
-df.loc[df['Position'] == 'TE', 'PPG+'] = df.loc[df['Position'] == 'TE', 'PPG PROJECTION'] - 8.69
+df.loc[df['Position'] == 'QB', 'PPG+'] = df.loc[df['Position'] == 'QB', 'PPG PROJECTION'] - 19.30
+df.loc[df['Position'] == 'HB', 'PPG+'] = df.loc[df['Position'] == 'HB', 'PPG PROJECTION'] - 13.50
+df.loc[df['Position'] == 'WR', 'PPG+'] = df.loc[df['Position'] == 'WR', 'PPG PROJECTION'] - 12.50
+df.loc[df['Position'] == 'TE', 'PPG+'] = df.loc[df['Position'] == 'TE', 'PPG PROJECTION'] - 9.30
 adp_df = all_df.sort_values(by = 'ADP')
 adp_df['ADP'] = adp_df['ADP']
 adp_df = adp_df[['ADP', 'Name', 'Position', 'Team']]
@@ -136,6 +143,9 @@ data_stores['df'] = df.values
 data_stores['df_columns'] = df.columns
 data_stores['stacking_df'] = stacking_df.values
 data_stores['stacking_df_columns'] = stacking_df.columns
+
+
+app = dash.Dash(__name__, external_stylesheets = ['/assets/style_sheet.css'])
 
 colors = {
     'background': '#ffffff',
@@ -466,7 +476,7 @@ def render_bar_chart(position_selected, value_selected, n_clicks_draft, n_clicks
     adp_df = pd.DataFrame(data= data_stores['adp_df'], columns = data_stores['adp_df_columns'])
     roster_df = pd.DataFrame(data= data_stores['roster_df'], columns = data_stores['roster_df_columns'])
     roster_list = data_stores['roster_list']
-    team_pos_count = pd.DataFrame(data = data_stores['stacking_df'], columns = data_stores['stacking_df_columns'])
+    team_pos_count = pd.DataFrame(data = data_stores['stacking_df'], columns = data_stores['stacking_df_columns'], index = ['QB', 'HB', 'WR', 'TE'])
 
     size_filter = int(size_filter)
     if len(selected_rows) > 0:
@@ -475,7 +485,7 @@ def render_bar_chart(position_selected, value_selected, n_clicks_draft, n_clicks
         drop_team = adp_df.iloc[selected_rows, 3].to_string(index=False).strip()
         df = df[df['Name'] != drop_player].reset_index(drop=True)
         adp_df = adp_df[adp_df['Name'] != drop_player]
-        
+
         #Added PPG boost for team stacking
         if n_clicks_draft > n_clicks_delete:
             if drop_team not in team_pos_count.columns.tolist():
@@ -522,6 +532,7 @@ def render_bar_chart(position_selected, value_selected, n_clicks_draft, n_clicks
                 df.loc[(df['Team'] == drop_team) & (df['Position'] == 'TE'), 'PPG PROJECTION'] += 0.75
                 df.loc[(df['Team'] == drop_team) & (df['Position'] == 'WR'), 'PPG+'] += 0.75
                 df.loc[(df['Team'] == drop_team) & (df['Position'] == 'WR'), 'PPG PROJECTION'] += 0.75
+
 
     if position_selected == 'ALL':
         filtered_df = df[(df['Position'] != 'D/ST') & (df['Position'] != 'K')].copy()
@@ -575,7 +586,7 @@ def render_bar_chart(position_selected, value_selected, n_clicks_draft, n_clicks
                          marker_line_color = 'black',
                          marker_line_width = 1,
                          textposition = 'auto')
-        
+
     if ((n_clicks_draft > n_clicks_delete) & (len(selected_rows) > 0)):
         drafted_player = drop_player
         drafted_player_pos = drop_pos
@@ -631,8 +642,7 @@ def render_bar_chart(position_selected, value_selected, n_clicks_draft, n_clicks
             roster_list[24] = drafted_player
         elif ((roster_list[25] == '-') & (drafted_player_pos == 'TE')):
             roster_list[25] = drafted_player
-        roster_df['Name'] = roster_list    
-        
+        roster_df['Name'] = roster_list
 
     data_stores['roster_list'] = roster_list
     data_stores['adp_df'] = adp_df.values
@@ -643,7 +653,7 @@ def render_bar_chart(position_selected, value_selected, n_clicks_draft, n_clicks
     data_stores['df_columns'] = df.columns
     data_stores['stacking_df'] = stacking_df.values
     data_stores['stacking_df_columns'] = stacking_df.columns
-    
+
     return {
         'data':[bardata],
         'layout': {'height': 425,
