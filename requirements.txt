@@ -6,7 +6,7 @@ dash-table==4.0.0
 gunicorn==20.1.0
 matplotlib==3.0.3
 numpy==1.16.2
-pandas==0.24.2
+pandas
 plotly==4.0.0
 requests==2.21.0
 urllib3==1.24.1
