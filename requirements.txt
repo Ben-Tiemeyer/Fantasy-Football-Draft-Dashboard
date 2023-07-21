@@ -1,7 +1,7 @@
 dash==1.9.1
-dash-core-components==1.0.0
-dash-html-components==1.0.0
-dash-renderer==1.0.0
+dash-core-components
+dash-html-components
+dash-renderer
 dash-table==4.0.0
 BeautifulSoup4==4.11.0
 gunicorn
