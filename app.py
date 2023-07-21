@@ -1,9 +1,9 @@
 import dash
-import dash_core_components as dcc
-import dash_html_components as html
+from dash import html
+from dash import dcc
+from dash import dash_table
 import matplotlib.pyplot as plt
 from matplotlib import animation
-import dash_table
 import numpy as np
 import pandas as pd
 import requests
