@@ -9,6 +9,7 @@ matplotlib==3.0.3
 numpy
 pandas
 plotly
+lxml
 requests==2.21.0
 urllib3==1.24.1
 whitenoise==5.2.0
