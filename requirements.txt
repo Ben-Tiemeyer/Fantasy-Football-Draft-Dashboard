@@ -1,8 +1,4 @@
-dash
-dash-core-components
-dash-html-components
-dash-renderer
-dash-table
+dash==2.11.1
 BeautifulSoup4==4.11.0
 gunicorn
 matplotlib==3.0.3
