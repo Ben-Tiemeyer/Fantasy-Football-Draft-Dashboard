@@ -3,7 +3,7 @@ dash-core-components
 dash-html-components
 dash-renderer
 dash-table
-BeautifulSoup4==3.2.0
+BeautifulSoup4==4.11.0
 gunicorn
 matplotlib==3.0.3
 numpy
