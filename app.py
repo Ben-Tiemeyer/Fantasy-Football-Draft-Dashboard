@@ -144,9 +144,6 @@ data_stores['df_columns'] = df.columns
 data_stores['stacking_df'] = stacking_df.values
 data_stores['stacking_df_columns'] = stacking_df.columns
 
-
-app = dash.Dash(__name__, external_stylesheets = ['/assets/style_sheet.css'])
-
 colors = {
     'background': '#ffffff',
     'text': 'dimgrey'
