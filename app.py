@@ -79,7 +79,8 @@ for pos in ['QB', 'RB', 'WR', 'TE']:
     else:
         projections['Position'] = pos
     projections = projections[['Name', 'Team', 'Position', 'PPG PROJECTION']]
-    all_df = all_df.append(projections)
+    #all_df = all_df.append(projections)
+    all_df = pd.concat([all_df, projections], ignore_index=True)
 
 all_df['TEAM ABBREV'] = all_df['Team'].copy()
 all_df['UID'] = all_df['Name'] + ' ' + all_df['TEAM ABBREV']
