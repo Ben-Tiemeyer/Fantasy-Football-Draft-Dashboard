@@ -3,7 +3,7 @@ from dash import dcc
 from dash import html
 import matplotlib.pyplot as plt
 from matplotlib import animation
-import dash_table
+from dash import dash_table
 import numpy as np
 import pandas as pd
 import requests
