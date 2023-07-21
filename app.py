@@ -37,7 +37,7 @@ team_stats['UID'] = team_stats['UID'].str.replace('Sr. ', '')
 team_stats['UID'] = team_stats['UID'].str.replace('V ', '')
 team_stats['UID'] = team_stats['UID'].str.replace('IV ', '')
 adp_dict = dict(zip(team_stats['UID'], team_stats.index + 1))
-print(team_stats)
+print(adp_dict)
 
 
 all_df = pd.DataFrame()
