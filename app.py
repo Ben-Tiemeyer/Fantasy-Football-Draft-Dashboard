@@ -152,7 +152,6 @@ colors = {
     'background': '#ffffff',
     'text': 'dimgrey'
 }
-layout = go.Layout(title = 'Draft Dashboard')
 app.layout = html.Div(style={'backgroundColor': colors['background'], 'width': '100%'}, children=[
     html.H1(
         children='Best Ball Draft Dashboard',
