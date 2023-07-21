@@ -1,4 +1,4 @@
-dash==2.11.1
+dash==1.9.1
 BeautifulSoup4==4.11.0
 gunicorn
 matplotlib==3.0.3
